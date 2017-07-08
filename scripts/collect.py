@@ -11,7 +11,7 @@ API_BASE_DEFAULT = 'https://api.smash.gg'
 EVENT_DEFAULT = 'melee-singles'
 MEM_DISPLAY_FREQ = 20
 
-def get_bracket_data(api_base, id, entrants):
+def get_bracket_data(api_base, id, entrants, date):
     url = '%s/phase_group/%s?expand[]=sets&expand[]=seeds' % (api_base, id)
     response = json.loads(requests.get(url).content)
     if not response.get('success', True) or 'entities' not in response:
@@ -54,6 +54,7 @@ def get_bracket_data(api_base, id, entrants):
             'winner': winner,
             'is_gf': is_gf,
             'best_of': best_of,
+            'date': date,
         })
     return __data
 
@@ -63,9 +64,17 @@ def get_tournament_data(api_base, tournament, event):
     if not response.get('success', True) or 'entities' not in response:
         raise ValueError('tournament "{0}" does not exist, or event "{1}" does not exist at "{0}"'.format(tournament, event))
 
+    event_entity = response['entities'].get('event', None)
+    if event_entity is None:
+        raise ValueError('tournament %s has no date attached' % tournament)
+
+    tournament_date = event_entity['startAt']
     entrants, _data = {}, []
     for _group in response['entities'].get('groups', ()):  # by Smash.gg terminology, a group is a bracket
-        _data.extend(get_bracket_data(api_base, _group['id'], entrants))
+        date = _group.get('startAt', tournament_date)
+        if not date or int(date) < 0:
+            date = tournament_date
+        _data.extend(get_bracket_data(api_base, _group['id'], entrants, date))
     return _data
 
 def get_slugs(url_path):
