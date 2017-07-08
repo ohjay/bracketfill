@@ -1,0 +1,20 @@
+data:
+  root: /Users/owenjow/bracketfill/data
+  csv_stats:
+    path: summer_2017.csv
+    type: h2h
+    limits:
+      min_col: 2
+      max_col: -6
+  tag:
+    fuzz_threshold: 75
+  collect:
+    smash_gg:
+      api_base: https://api.smash.gg
+      event: melee-singles
+      tournament_url_file: urls_past_101+_06_08_17.txt
+
+train:
+  model: LogisticRegression
+  batch_size: 32
+  max_steps: 100000
