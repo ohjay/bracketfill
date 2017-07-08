@@ -59,10 +59,18 @@ def get_bracket_data(api_base, id, entrants, date):
     return __data
 
 def get_tournament_data(api_base, tournament, event):
-    url = '%s/tournament/%s/event/%s?expand[]=groups' % (api_base, tournament, event)
-    response = json.loads(requests.get(url).content)
-    if not response.get('success', True) or 'entities' not in response:
-        raise ValueError('tournament "{0}" does not exist, or event "{1}" does not exist at "{0}"'.format(tournament, event))
+    if type(event) != list:
+        event = [event]
+    success = False
+    for _e in event:
+        url = '%s/tournament/%s/event/%s?expand[]=groups' % (api_base, tournament, _e)
+        response = json.loads(requests.get(url).content)
+        if response.get('success', True) and 'entities' in response:
+            success = True
+            break
+    if not success:
+        raise ValueError(
+            'tournament "{0}" does not exist, or event "{1}" does not exist at "{0}"'.format(tournament, event[0]))
 
     event_entity = response['entities'].get('event', None)
     if event_entity is None:
@@ -102,10 +110,15 @@ def collect_smash_gg(sgg_config, root):
             print('[-] %s' % str(e))
             continue  # nonexistent tournament/event
 
-    outfile = sgg_config['tournament_url_file'].replace('urls_', '').replace('urls', '')
-    if '.' in outfile:
-        outfile = outfile[:outfile.rfind('.')]
-    outfile = os.path.join(root, outfile + '.pickle')
+    if sgg_config.get('augment', False):
+        outfile = os.path.join(root, sgg_config['augment'])
+        with open(outfile, 'rb') as handle:
+            data.extend(cPickle.load(handle))
+    else:
+        outfile = sgg_config['tournament_url_file'].replace('urls', 'sets')
+        if '.' in outfile:
+            outfile = outfile[:outfile.rfind('.')]
+        outfile = os.path.join(root, outfile + '.pickle')
     with open(outfile, 'wb') as handle:
         cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
 
