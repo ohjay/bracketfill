@@ -110,10 +110,11 @@ def collect_smash_gg(sgg_config, root):
             print('[-] %s' % str(e))
             continue  # nonexistent tournament/event
 
-    if sgg_config.get('augment', False):
-        outfile = os.path.join(root, sgg_config['augment'])
-        with open(outfile, 'rb') as handle:
-            data.extend(cPickle.load(handle))
+    if sgg_config.get('out', False):
+        outfile = os.path.join(root, sgg_config['out'])
+        if os.path.isfile(outfile):
+            with open(outfile, 'rb') as handle:
+                data.extend(cPickle.load(handle))
     else:
         outfile = sgg_config['tournament_url_file'].replace('urls', 'sets')
         if '.' in outfile:
@@ -123,11 +124,11 @@ def collect_smash_gg(sgg_config, root):
         cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
 
 @utils.verbose('Initial debugging')
-def run_debug_initial():
+def run_debug_initial(*args, **kwargs):
     return True
 
 def collect(config, debug=False):
-    if debug and not run_debug_initial():
+    if debug and not run_debug_initial(config=config):
         return  # `run_debug_initial` should return True if the program is meant to continue afterward
 
     data_params = config['data']

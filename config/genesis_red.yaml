@@ -15,7 +15,7 @@ data:
         - melee-singles
         - super-smash-bros-melee
       tournament_url_file: urls_past_101+_06_08_17.txt
-      augment: sets_past_101+_06_08_17.pickle
+      out: sets_past_101+_06_08_17.pickle
 
 train:
   model: LogisticRegression

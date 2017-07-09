@@ -34,11 +34,11 @@ def parse_h2h_spreadsheet(csv_path, csv_config):
     return h2h_data
 
 @utils.verbose('Initial debugging')
-def run_debug_initial():
+def run_debug_initial(*args, **kwargs):
     return True
 
 def parse(config, debug=False):
-    if debug and not run_debug_initial():
+    if debug and not run_debug_initial(config=config):
         return  # `run_debug_initial` should return True if the program is meant to continue afterward
 
     data_params = config['data']
