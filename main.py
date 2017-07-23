@@ -21,10 +21,12 @@ def handler(command):
     }.get(command, error)
 
 def main(args):
-    if not os.path.isfile(args.config):
-        args.config = os.path.join(ROOT, args.config)
-    assert os.path.isfile(args.config)
-    config = yaml.load(open(args.config, 'r')) if args.config else None
+    config = None
+    if args.config:
+        if not os.path.isfile(args.config):
+            args.config = os.path.join(ROOT, args.config)
+        assert os.path.isfile(args.config)
+        config = yaml.load(open(args.config, 'r'))
     handler(args.command)(config, debug=args.debug)
 
 if __name__ == '__main__':
