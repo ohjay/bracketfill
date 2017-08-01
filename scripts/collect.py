@@ -125,7 +125,22 @@ def collect_smash_gg(sgg_config, root):
 
 @utils.verbose('Initial debugging')
 def run_debug_initial(*args, **kwargs):
-    return True
+    config = kwargs['config']
+    root = config['data']['root']
+    sgg_config = config['data']['collect']['smash_gg']
+    outfile = os.path.join(root, sgg_config['out'])
+    with open(outfile, 'rb') as handle:
+        data = cPickle.load(handle)
+    data_chudat = [d for d in data if 'ChuDat' in (d['entrant1']['gamerTag'], d['entrant2']['gamerTag'])]
+    for d in data_chudat:
+        print('%s vs. %s %s-%s' % (
+            d['entrant1']['gamerTag'].ljust(18),
+            d['entrant2']['gamerTag'].ljust(18),
+            'B' if d['entrant1_score'] == -1 else str(d['entrant1_score']),  # replace "-1"s with "bye"s
+            'B' if d['entrant2_score'] == -1 else str(d['entrant2_score']),
+        ))
+    print('---\nFound %d games involving ChuDat.' % (len(data_chudat)))
+    return False
 
 def collect(config, debug=False):
     if debug and not run_debug_initial(config=config):
