@@ -38,7 +38,7 @@ train:
     - profiles.csv
 
 eval:
-  restore_itr: 3000
+  restore_itr: 28000
 
 # ----------------
 # Model parameters

@@ -9,17 +9,17 @@ from parse import parse_players
 
 def extract_player_data(tag, model_inputs, players, transform=None):
     data = {}
-    for input_name in model_inputs.keys():
-        if input_name == 'floaty':
-            data[input_name] = players[tag.lower()][input_name] + 1
-        elif input_name in ('main', 'secondary', 'ranking'):
-            _value = players[tag.lower()][input_name]
-            if transform and type(transform) == list and len(transform) == 2:
-                _value = (transform[0] - _value) * transform[1]
-            data[input_name] = _value
-
-    # TODO: apply feature transforms to this data as well
-    # Must be the same transforms as performed in `train.py`!
+    try:
+        for input_name in model_inputs.keys():
+            if input_name == 'floaty':
+                data[input_name] = players[tag.lower()][input_name] + 1
+            elif input_name in ('main', 'secondary', 'ranking'):
+                _value = players[tag.lower()][input_name]
+                if transform and type(transform) == list and len(transform) == 2:
+                    _value = (transform[0] - _value) * transform[1]
+                data[input_name] = _value
+    except KeyError:
+        print('[-] Data unavailable for %s.' % tag)
 
     return data
 
@@ -55,12 +55,18 @@ def evaluate(config, debug=False):
 
         data0 = extract_player_data(tag0, model.inputs, players, transform)
         data1 = extract_player_data(tag1, model.inputs, players, transform)
+        if not data0 or not data1:
+            print('[-] Resetting...')
+            continue
+
         data_inputs = {}
         for input_name in data0:
             _combined = np.array([data0[input_name]] + [data1[input_name]])
+            _combined /= np.linalg.norm(_combined)
             data_inputs[input_name] = np.reshape(_combined, (1, _combined.size))
 
         input_feed = {input_tensor: data_inputs[name] for name, input_tensor in model.inputs.items()}
         winner = model.outputs['winner']
         predicted_class, output = sess.run([winner['predicted_class'], winner['output']], feed_dict=input_feed)
-        print('we expect %s to win, with %.5f probability' % (tags[int(predicted_class)], output))
+        confidence = output if int(predicted_class) == 1 else 1.0 - output
+        print('we expect %s to win, with %.3f confidence' % (tags[int(predicted_class)], confidence))

@@ -7,7 +7,6 @@ import models
 import tensorflow as tf
 import numpy as np
 from parse import parse_sets, parse_players
-from sklearn import preprocessing
 
 """
 train.py
@@ -46,7 +45,9 @@ def load_data(model_inputs, model_labels, config):
                 print('[-] Unrecognized label name: %s.' % label_name)
 
     for input_name, data in data_inputs.items():
-        data_inputs[input_name] = preprocessing.normalize(np.array(data), norm='l2')  # TODO: apply in `evaluate.py` too
+        data = np.array(data)
+        row_norms = np.linalg.norm(data, axis=1)
+        data_inputs[input_name] = data / row_norms[:, None]  # same as `sklearn.preprocessing.normalize`
     for label_name, data in data_labels.items():
         data_labels[label_name] = np.array(data)
 
@@ -99,7 +100,7 @@ def train(config, debug=False):
 
     data_inputs, data_labels = load_data(model.inputs, model.labels, config)
     batch_indices = index_generator(train_params['batch_size'], data_labels.values()[0].shape[0])
-    for step in range(train_params['max_steps']):
+    for step in range(train_params['max_steps'] + 1):
         indices = next(batch_indices)
         input_feed = {input_tensor: data_inputs[name][indices]
                       for name, input_tensor in model.inputs.items()}
