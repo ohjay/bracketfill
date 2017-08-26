@@ -10,13 +10,17 @@ from parse import parse_players
 def extract_player_data(tag, model_inputs, players, transform=None):
     data = {}
     for input_name in model_inputs.keys():
-        if input_name in ('main', 'secondary', 'floaty'):
-            data[input_name] = players[tag.lower()][input_name]
-        elif input_name == 'ranking':
-            _ranking = players[tag.lower()][input_name]
+        if input_name == 'floaty':
+            data[input_name] = players[tag.lower()][input_name] + 1
+        elif input_name in ('main', 'secondary', 'ranking'):
+            _value = players[tag.lower()][input_name]
             if transform and type(transform) == list and len(transform) == 2:
-                _ranking = (transform[0] - _ranking) * transform[1]
-            data[input_name] = _ranking
+                _value = (transform[0] - _value) * transform[1]
+            data[input_name] = _value
+
+    # TODO: apply feature transforms to this data as well
+    # Must be the same transforms as performed in `train.py`!
+
     return data
 
 @utils.verbose('Initial debugging')
@@ -59,4 +63,4 @@ def evaluate(config, debug=False):
         input_feed = {input_tensor: data_inputs[name] for name, input_tensor in model.inputs.items()}
         winner = model.outputs['winner']
         predicted_class, output = sess.run([winner['predicted_class'], winner['output']], feed_dict=input_feed)
-        print('we expect %s to win, with %.2f probability' % (tags[int(predicted_class)], output))
+        print('we expect %s to win, with %.5f probability' % (tags[int(predicted_class)], output))

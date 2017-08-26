@@ -48,13 +48,14 @@ inputs:
   main:
     dtype: float32
     shape: [2]
+    transform: [30, 1]
   floaty:
     dtype: float32
     shape: [2]
   ranking:
     dtype: float32
     shape: [2]
-    transform: [100, 0.1]
+    transform: X
 
 outputs:
   winner:

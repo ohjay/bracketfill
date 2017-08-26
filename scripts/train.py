@@ -7,6 +7,7 @@ import models
 import tensorflow as tf
 import numpy as np
 from parse import parse_sets, parse_players
+from sklearn import preprocessing
 
 """
 train.py
@@ -22,29 +23,30 @@ def load_data(model_inputs, model_labels, config):
         tag0 = _set['tag0'].lower()
         tag1 = _set['tag1'].lower()
         for input_name in model_inputs.keys():
-            if input_name in ('main', 'secondary', 'floaty'):
-                data_inputs[input_name].append([players[tag0][input_name], players[tag1][input_name]])
-            elif input_name == 'ranking':
-                _ranking0 = players[tag0][input_name]
-                _ranking1 = players[tag1][input_name]
-                transform = config['inputs']['ranking'].get('transform', None)
+            if input_name == 'floaty':
+                data_inputs['floaty'].append([players[tag0]['floaty'] + 1, players[tag1]['floaty'] + 1])
+                data_inputs['floaty'].append([players[tag1]['floaty'] + 1, players[tag0]['floaty'] + 1])
+            elif input_name in ('main', 'secondary', 'ranking'):
+                _value0 = players[tag0][input_name]
+                _value1 = players[tag1][input_name]
+                transform = config['inputs'][input_name].get('transform', None)
                 if transform:
                     if type(transform) == list and len(transform) == 2:
-                        _ranking0 = (transform[0] - _ranking0) * transform[1]
-                        _ranking1 = (transform[0] - _ranking1) * transform[1]
-                    else:
-                        print('[-] Unrecognized ranking transform: %r.' % transform)
-                data_inputs['ranking'].append([_ranking0, _ranking1])
+                        _value0 = (transform[0] - _value0) * transform[1]
+                        _value1 = (transform[0] - _value1) * transform[1]
+                data_inputs[input_name].append([_value0, _value1])
+                data_inputs[input_name].append([_value1, _value0])
             else:
                 print('[-] Unrecognized input name: %s.' % input_name)
         for label_name in model_labels.keys():
             if label_name == 'winner':
                 data_labels['winner'].append(_set['winner'])
+                data_labels['winner'].append(1 - _set['winner'])
             else:
                 print('[-] Unrecognized label name: %s.' % label_name)
 
     for input_name, data in data_inputs.items():
-        data_inputs[input_name] = np.array(data)
+        data_inputs[input_name] = preprocessing.normalize(np.array(data), norm='l2')  # TODO: apply in `evaluate.py` too
     for label_name, data in data_labels.items():
         data_labels[label_name] = np.array(data)
 
@@ -105,10 +107,13 @@ def train(config, debug=False):
                       for name, label_tensor in model.labels.items()}
         feed_dict = input_feed.copy()
         feed_dict.update(label_feed)
-        _, loss = sess.run([model.train_step, model.loss], feed_dict=feed_dict)
+        fetches = [model.train_step, model.loss, model.outputs['winner']['output']]
+        _, loss, output = sess.run(fetches, feed_dict=feed_dict)
         if step % checkpoint_freq == 0:
             model.save(sess, step, outfolder)
         if step % report_freq == 0:
-            print('[o] iteration %d | training loss %.3f' % (step, loss))
+            output = np.squeeze(output)
+            mean, std = np.mean(output), np.std(output)  # type: float
+            print('[o] iteration %d | training loss %.3f | mean %.3f | std: %.3f' % (step, loss, mean, std))
 
     print('[+] Training complete.')

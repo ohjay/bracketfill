@@ -19,9 +19,9 @@ SETTINGS = {
 def character_index(character):
     """Transforms a SSBM character into an integer."""
     mapping = dict(enumerate(
-        ['fox', 'falco', 'marth', 'sheik', 'jigglypuff', 'peach', 'ice climbers', 'falcon', 'pikachu',
+        ['', 'fox', 'falco', 'marth', 'sheik', 'jigglypuff', 'peach', 'ice climbers', 'falcon', 'pikachu',
          'samus', 'dr. mario', 'yoshi', 'luigi', 'ganondorf', 'mario', 'young link', 'donkey kong',
-         'link', 'mr. game and watch', 'roy', 'mewtwo', 'zelda', 'ness', 'pichu', 'bowser', 'kirby', '']
+         'link', 'mr. game and watch', 'roy', 'mewtwo', 'zelda', 'ness', 'pichu', 'bowser', 'kirby']
     ))
     mapping = {v: k for k, v in mapping.iteritems()}
     return mapping[character.lower()]

@@ -71,18 +71,19 @@ class LogisticRegression(Model):
         total_input_size = sum([_it.get_shape().as_list()[1] for _it in input_tensors])
         dtype = self.outputs.values()[0]['info']['dtype']
 
-        weights = tf.get_variable('W', [total_input_size, 1], dtype=dtype)
-        biases = tf.get_variable('b', [1], dtype=dtype, initializer=tf.constant_initializer(0.0, dtype=dtype))
+        weights = tf.get_variable('W', shape=[total_input_size, 1], dtype=dtype,
+                                  initializer=tf.contrib.layers.xavier_initializer())
+        biases = tf.get_variable('b', shape=[1], dtype=dtype, initializer=tf.constant_initializer(0.5, dtype=dtype))
         _linear = tf.matmul(_inputs, weights) + biases
 
-        zero, one = tf.constant(0.0), tf.constant(1.0)
-        output = tf.divide(tf.exp(_linear), tf.add(one, tf.exp(_linear)), name='output')
-        predicted_class = tf.clip_by_value(tf.round(output), zero, one, name='predicted_class')
+        output = tf.divide(1.0, tf.add(1.0, tf.exp(tf.negative(_linear))), name='output')
+        predicted_class = tf.clip_by_value(tf.round(output), 0.0, 1.0, name='predicted_class')
 
         output_name = self.outputs.keys()[0]
         self.outputs[output_name]['output'] = output
         self.outputs[output_name]['predicted_class'] = predicted_class
 
-        _labels = self.labels.values()[0]
-        _argument = tf.add(one, tf.exp(tf.negative(_labels * output)))
+        _labels = tf.squeeze(self.labels.values()[0])
+        # self.loss = tf.losses.log_loss(_labels, output)
+        _argument = tf.add(1.0, tf.exp(tf.negative(_labels * output)))
         self.loss = tf.constant(1.0 / log(2)) * tf.reduce_mean(tf.log(_argument))
