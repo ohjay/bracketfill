@@ -7,6 +7,7 @@ import argparse
 from scripts.collect import collect
 from scripts.parse import parse
 from scripts.train import train
+from scripts.evaluate import evaluate
 
 ROOT = '/Users/owenjow/bracketfill'
 
@@ -18,6 +19,7 @@ def handler(command):
         'collect': collect,
         'parse': parse,
         'train': train,
+        'evaluate': evaluate,
     }.get(command, error)
 
 def main(args):
@@ -31,7 +33,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['collect', 'parse', 'train'], default='train')
+    parser.add_argument('command', choices=['collect', 'parse', 'train', 'evaluate'], default='train')
     parser.add_argument('--config', '-c', type=str, help='config file')
     parser.add_argument('--debug', '-d', action='store_true')
     args = parser.parse_args()

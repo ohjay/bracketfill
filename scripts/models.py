@@ -57,7 +57,7 @@ class Model(object):
     @staticmethod
     def restore(sess, iteration, outfolder='out'):
         saver = tf.train.Saver()
-        saver.restore(sess, os.path.join(outfolder, iteration))
+        saver.restore(sess, os.path.join(outfolder, 'var-%d' % iteration))
         print('[+] Model restored to iteration %d (outfolder=%s).' % (iteration, outfolder))
 
 class LogisticRegression(Model):

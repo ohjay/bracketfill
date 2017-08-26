@@ -26,7 +26,7 @@ def print_memory_usage(lst, prefix=''):
 def rm_rf(dir, require_confirmation=True):
     print('WARNING: about to delete the full contents of `%s`!' % dir)
     if require_confirmation:
-        confirmation = input('Are you sure you want to proceed? (True/False) ')
+        confirmation = raw_input('Are you sure you want to proceed? (True/False) ')
     else:
         confirmation = True
     if (isinstance(confirmation, bool) and confirmation) \

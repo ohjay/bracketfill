@@ -19,11 +19,22 @@ def load_data(model_inputs, model_labels, config):
     data_inputs = {input_name: [] for input_name in model_inputs.keys()}
     data_labels = {label_name: [] for label_name in model_labels.keys()}
     for _set in sets:
-        tag0 = _set['tag0']
-        tag1 = _set['tag1']
+        tag0 = _set['tag0'].lower()
+        tag1 = _set['tag1'].lower()
         for input_name in model_inputs.keys():
-            if input_name in ('main', 'secondary', 'floaty', 'ranking'):
+            if input_name in ('main', 'secondary', 'floaty'):
                 data_inputs[input_name].append([players[tag0][input_name], players[tag1][input_name]])
+            elif input_name == 'ranking':
+                _ranking0 = players[tag0][input_name]
+                _ranking1 = players[tag1][input_name]
+                transform = config['inputs']['ranking'].get('transform', None)
+                if transform:
+                    if type(transform) == list and len(transform) == 2:
+                        _ranking0 = (transform[0] - _ranking0) * transform[1]
+                        _ranking1 = (transform[0] - _ranking1) * transform[1]
+                    else:
+                        print('[-] Unrecognized ranking transform: %r.' % transform)
+                data_inputs['ranking'].append([_ranking0, _ranking1])
             else:
                 print('[-] Unrecognized input name: %s.' % input_name)
         for label_name in model_labels.keys():
@@ -47,6 +58,7 @@ def index_generator(batch_size, data_size):
             curr_idxs = indices[batch_index:batch_index + batch_size]
             yield curr_idxs
 
+@utils.verbose('Initial debugging')
 def run_debug_initial(*args, **kwargs):
     return True
 
