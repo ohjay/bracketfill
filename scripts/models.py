@@ -4,6 +4,11 @@ import os
 import tensorflow as tf
 from math import log
 
+"""
+model.py
+Model interface and graph spec
+"""
+
 class Model(object):
     def __init__(self, inputs, outputs):
         self.inputs = self.load_inputs(inputs)

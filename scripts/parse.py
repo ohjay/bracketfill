@@ -6,6 +6,11 @@ import csv
 import utils
 from fuzzywuzzy import fuzz
 
+"""
+parse.py
+Files in the data folder -> Post-processed data in memory
+"""
+
 SETTINGS = {
     'fuzz_threshold': 70,
     'effective_inf': 1e10,

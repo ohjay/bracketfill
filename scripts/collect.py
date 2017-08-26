@@ -7,6 +7,11 @@ import json
 import requests
 import cPickle
 
+"""
+collect.py
+Data from the world -> Files in the data folder
+"""
+
 API_BASE_DEFAULT = 'https://api.smash.gg'
 EVENT_DEFAULT = 'melee-singles'
 MEM_DISPLAY_FREQ = 20

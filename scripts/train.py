@@ -7,17 +7,22 @@ import numpy as np
 from collections import Counter
 from parse import parse_sets, parse_players
 
+"""
+train.py
+Graph spec + Post-processed data in memory -> Trained, saved model
+"""
+
 def load_data(model_inputs, model_labels, sets_source, players_source):
     sets = parse_sets(sets_source)
     players = parse_players(players_source)
     data_inputs = {input_name: [] for input_name in model_inputs.keys()}
     data_labels = {label_name: [] for label_name in model_labels.keys()}
     for _set in sets:
-        player0 = _set['player0']
-        player1 = _set['player1']
+        tag0 = _set['player0']
+        tag1 = _set['player1']
         for input_name in model_inputs.keys():
             if input_name in ('main', 'secondary', 'floaty'):
-                data_inputs[input_name].append([players[player0][input_name], players[player1][input_name]])
+                data_inputs[input_name].append([players[tag0][input_name], players[tag1][input_name]])
             else:
                 print('[-] Unrecognized input name: %s.' % input_name)
         for label_name in model_labels.keys():
