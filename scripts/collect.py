@@ -61,7 +61,7 @@ def get_bracket_data(api_base, id, entrants, date):
 def get_tournament_data(api_base, tournament, event):
     if type(event) != list:
         event = [event]
-    success = False
+    response, success = None, False
     for _e in event:
         url = '%s/tournament/%s/event/%s?expand[]=groups' % (api_base, tournament, _e)
         response = json.loads(requests.get(url).content)
@@ -72,6 +72,7 @@ def get_tournament_data(api_base, tournament, event):
         raise ValueError(
             'tournament "{0}" does not exist, or event "{1}" does not exist at "{0}"'.format(tournament, event[0]))
 
+    assert response is not None, 'failed to load a single tournament'
     event_entity = response['entities'].get('event', None)
     if event_entity is None:
         raise ValueError('tournament %s has no date attached' % tournament)

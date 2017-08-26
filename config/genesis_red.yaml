@@ -1,3 +1,9 @@
+# -------------------------
+# Infrastructure parameters
+# -------------------------
+
+project_root: /Users/owenjow/bracketfill
+
 data:
   root: /Users/owenjow/bracketfill/data
   csv_stats:
@@ -19,5 +25,35 @@ data:
 
 train:
   model: LogisticRegression
+  restore_itr: X
+  outfolder: out
   batch_size: 32
   max_steps: 100000
+  checkpoint_freq: 1000
+  report_freq: 1000
+  lr: 0.1
+  sets_source: summer_2017.csv
+  players_source: TODO
+
+# ----------------
+# Model parameters
+# ----------------
+
+inputs:
+  main:
+    dtype: int32
+    shape: [2]
+  secondary:
+    dtype: int32
+    shape: [2]
+  floaty:
+    dtype: int32
+    shape: [2]
+  ranking:
+    dtype: int32
+    shape: [2]
+
+outputs:
+  winner:
+    dtype: float32
+    shape: []

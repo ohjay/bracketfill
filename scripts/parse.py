@@ -33,6 +33,22 @@ def parse_h2h_spreadsheet(csv_path, csv_config):
                     h2h_data[tag][opponent] = map(int, (match.group(1), match.group(2)))
     return h2h_data
 
+def parse_sets(sets_source):
+    """Parse set information from SETS_SOURCE."""
+    if sets_source.endswith('csv'):
+        # SETS_SOURCE assumed to consist of H2H spreadsheet data
+        return {}  # TODO
+    else:
+        print('[-] Unrecognized sets source: %s.' % sets_source)
+
+def parse_players(players_source):
+    """Parse player information from PLAYERS_SOURCE."""
+    if players_source.endswith('csv'):
+        # PLAYERS_SOURCE assumed to consist of filled spreadsheet data
+        return {}  # TODO
+    else:
+        print('[-] Unrecognized players source: %s.' % players_source)
+
 @utils.verbose('Initial debugging')
 def run_debug_initial(*args, **kwargs):
     return True
