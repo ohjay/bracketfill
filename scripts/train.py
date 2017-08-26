@@ -6,7 +6,6 @@ import utils
 import models
 import tensorflow as tf
 import numpy as np
-from collections import Counter
 from parse import parse_sets, parse_players
 
 """
@@ -23,13 +22,13 @@ def load_data(model_inputs, model_labels, config):
         tag0 = _set['tag0']
         tag1 = _set['tag1']
         for input_name in model_inputs.keys():
-            if input_name in ('main', 'secondary', 'floaty'):
+            if input_name in ('main', 'secondary', 'floaty', 'ranking'):
                 data_inputs[input_name].append([players[tag0][input_name], players[tag1][input_name]])
             else:
                 print('[-] Unrecognized input name: %s.' % input_name)
         for label_name in model_labels.keys():
             if label_name == 'winner':
-                data_labels['winner'] = _set['winner']
+                data_labels['winner'].append(_set['winner'])
             else:
                 print('[-] Unrecognized label name: %s.' % label_name)
 
@@ -42,10 +41,10 @@ def load_data(model_inputs, model_labels, config):
 
 def index_generator(batch_size, data_size):
     while True:
-        idxs = np.arange(0, data_size)
-        np.random.shuffle(idxs)
-        for batch_idx in range(0, data_size, batch_size):
-            curr_idxs = idxs[batch_idx:batch_idx + batch_size]
+        indices = np.arange(0, data_size)
+        np.random.shuffle(indices)
+        for batch_index in range(0, data_size, batch_size):
+            curr_idxs = indices[batch_index:batch_index + batch_size]
             yield curr_idxs
 
 def run_debug_initial(*args, **kwargs):
@@ -72,7 +71,7 @@ def train(config, debug=False):
     else:
         for _, _, files in os.walk(outfolder):
             if files:
-                utils.rm_rf(outfolder)
+                utils.rm_rf(outfolder, require_confirmation=False)
     with open(os.path.join(outfolder, 'config_in.yaml'), 'w') as f:
         yaml.dump(config, f, default_flow_style=False)
     checkpoint_freq, report_freq = train_params['checkpoint_freq'], train_params['report_freq']
@@ -88,14 +87,16 @@ def train(config, debug=False):
     batch_indices = index_generator(train_params['batch_size'], data_labels.values()[0].shape[0])
     for step in range(train_params['max_steps']):
         indices = next(batch_indices)
-        input_feed = Counter({input_tensor: data_inputs[name][indices]
-                              for name, input_tensor in model.inputs.items()})
-        label_feed = Counter({label_tensor: data_labels[name][indices]
-                              for name, label_tensor in model.labels.items()})
-        _, loss = sess.run([model.train_step, model.loss], feed_dict=(input_feed + label_feed))
+        input_feed = {input_tensor: data_inputs[name][indices]
+                      for name, input_tensor in model.inputs.items()}
+        label_feed = {label_tensor: data_labels[name][indices]
+                      for name, label_tensor in model.labels.items()}
+        feed_dict = input_feed.copy()
+        feed_dict.update(label_feed)
+        _, loss = sess.run([model.train_step, model.loss], feed_dict=feed_dict)
         if step % checkpoint_freq == 0:
             model.save(sess, step, outfolder)
         if step % report_freq == 0:
-            print('[o] iteration %d / training loss %.3f' % (step, loss))
+            print('[o] iteration %d | training loss %.3f' % (step, loss))
 
     print('[+] Training complete.')

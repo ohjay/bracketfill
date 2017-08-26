@@ -16,6 +16,16 @@ SETTINGS = {
     'effective_inf': 1e10,
 }
 
+def character_index(character):
+    """Transforms a SSBM character into an integer."""
+    mapping = dict(enumerate(
+        ['fox', 'falco', 'marth', 'sheik', 'jigglypuff', 'peach', 'ice climbers', 'falcon', 'pikachu',
+         'samus', 'dr. mario', 'yoshi', 'luigi', 'ganondorf', 'mario', 'young link', 'donkey kong',
+         'link', 'mr. game and watch', 'roy', 'mewtwo', 'zelda', 'ness', 'pichu', 'bowser', 'kirby', '']
+    ))
+    mapping = {v: k for k, v in mapping.iteritems()}
+    return mapping[character.lower()]
+
 @utils.verbose('H2H spreadsheet parsing')
 def parse_h2h_spreadsheet(csv_path, csv_config):
     """Original application: `data/summer_2017.csv`
@@ -38,7 +48,21 @@ def parse_h2h_spreadsheet(csv_path, csv_config):
                     h2h_data[tag][opponent] = map(int, (match.group(1), match.group(2)))
     return h2h_data
 
-@utils.verbose('Set parsing')
+def parse_profile_spreadsheet(csv_path):
+    profiles = {}
+    with open(csv_path, 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+        attrs = ['_'.join(attr.lower().split()) for attr in next(reader) if len(attr) > 0]
+        for row in reader:
+            row[2] = character_index(row[2])  # main
+            row[3] = character_index(row[3])  # secondary
+            tag, row = row[1].lower(), row[:1] + row[2:]
+            for i in range(len(row)):
+                if row[i] == '':
+                    row[i] = 5  # TODO: also have option to set to average / specify column defaults
+            profiles[tag] = {attr: float(value) for attr, value in zip(attrs, row)}
+    return profiles
+
 def parse_sets(config):
     """Parse set information from SETS_SOURCE."""
     sets = []
@@ -62,15 +86,18 @@ def parse_sets(config):
             print('[-] ERROR: Unrecognized source: %s.' % source)
     return sets
 
-@utils.verbose('Player parsing')
 def parse_players(config):
     """Parse player information from PLAYERS_SOURCE."""
     players = {}
     for source in config['train']['players_source']:
         source = os.path.join(config['data']['root'], source)
-        if source.endswith('player_profiles.csv'):
+        if source.endswith('profiles.csv'):
             # SOURCE assumed to consist of general spreadsheet data
-            'TODO'
+            profiles = parse_profile_spreadsheet(source)
+            for tag in profiles:
+                if tag not in players:
+                    players[tag] = {}
+                players[tag].update(profiles[tag])
         elif source.endswith('rankings.txt'):
             # SOURCE assumed to consist of a list of rankings
             with open(source) as f:

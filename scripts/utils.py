@@ -23,10 +23,14 @@ def verbose(task):
 def print_memory_usage(lst, prefix=''):
     print('%sMemory usage: %.3f MB' % (prefix, float(sys.getsizeof(lst)) / 1e6))
 
-def rm_rf(dir):
+def rm_rf(dir, require_confirmation=True):
     print('WARNING: about to delete the full contents of `%s`!' % dir)
-    confirmation = input('Are you sure you want to proceed? (True/False) ')
-    if isinstance(confirmation, str) and confirmation.lower() == 'true':
+    if require_confirmation:
+        confirmation = input('Are you sure you want to proceed? (True/False) ')
+    else:
+        confirmation = True
+    if (isinstance(confirmation, bool) and confirmation) \
+            or (isinstance(confirmation, str) and confirmation.lower() == 'true'):
         for filename in os.listdir(dir):
             filepath = os.path.join(dir, filename)
             try:
