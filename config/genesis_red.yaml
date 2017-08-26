@@ -36,7 +36,6 @@ train:
     - summer_2017.csv
   players_source:
     - profiles.csv
-    - rankings.txt
 
 # ----------------
 # Model parameters
