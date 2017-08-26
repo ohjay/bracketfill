@@ -32,7 +32,7 @@ class Model(object):
         labels_dst, outputs_dst = {}, {}
         for output_name, output_info in outputs.items():
             labels_dst[output_name] = self.load_placeholder(output_info)
-            outputs_dst[output_name] = output_info
+            outputs_dst[output_name] = {'info': output_info}
         return labels_dst, outputs_dst
 
     @staticmethod
@@ -69,7 +69,7 @@ class LogisticRegression(Model):
         input_tensors = self.inputs.values()
         _inputs = input_tensors[0] if len(input_tensors) == 1 else tf.concat(input_tensors, 1)
         total_input_size = sum([_it.get_shape().as_list()[1] for _it in input_tensors])
-        dtype = self.outputs.values()[0]['dtype']
+        dtype = self.outputs.values()[0]['info']['dtype']
 
         weights = tf.get_variable('W', [total_input_size, 1], dtype=dtype)
         biases = tf.get_variable('b', [1], dtype=dtype, initializer=tf.constant_initializer(0.0, dtype=dtype))
@@ -79,6 +79,10 @@ class LogisticRegression(Model):
         output = tf.divide(tf.exp(_linear), tf.add(one, tf.exp(_linear)), name='output')
         predicted_class = tf.clip_by_value(tf.round(output), zero, one, name='predicted_class')
 
+        output_name = self.outputs.keys()[0]
+        self.outputs[output_name]['output'] = output
+        self.outputs[output_name]['predicted_class'] = predicted_class
+
         _labels = self.labels.values()[0]
-        _argument = tf.add(one, tf.exp(tf.negative(_labels * predicted_class)))
+        _argument = tf.add(one, tf.exp(tf.negative(_labels * output)))
         self.loss = tf.constant(1.0 / log(2)) * tf.reduce_mean(tf.log(_argument))

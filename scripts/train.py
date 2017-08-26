@@ -1,6 +1,8 @@
 #!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
 
 import os
+import yaml
+import utils
 import models
 import tensorflow as tf
 import numpy as np
@@ -12,14 +14,14 @@ train.py
 Graph spec + Post-processed data in memory -> Trained, saved model
 """
 
-def load_data(model_inputs, model_labels, sets_source, players_source):
-    sets = parse_sets(sets_source)
-    players = parse_players(players_source)
+def load_data(model_inputs, model_labels, config):
+    sets = parse_sets(config)
+    players = parse_players(config)
     data_inputs = {input_name: [] for input_name in model_inputs.keys()}
     data_labels = {label_name: [] for label_name in model_labels.keys()}
     for _set in sets:
-        tag0 = _set['player0']
-        tag1 = _set['player1']
+        tag0 = _set['tag0']
+        tag1 = _set['tag1']
         for input_name in model_inputs.keys():
             if input_name in ('main', 'secondary', 'floaty'):
                 data_inputs[input_name].append([players[tag0][input_name], players[tag1][input_name]])
@@ -65,6 +67,14 @@ def train(config, debug=False):
     model.train_step = optimizer.minimize(model.loss)
 
     outfolder = os.path.join(root, train_params['outfolder'])
+    if not os.path.exists(outfolder):
+        os.makedirs(outfolder)
+    else:
+        for _, _, files in os.walk(outfolder):
+            if files:
+                utils.rm_rf(outfolder)
+    with open(os.path.join(outfolder, 'config_in.yaml'), 'w') as f:
+        yaml.dump(config, f, default_flow_style=False)
     checkpoint_freq, report_freq = train_params['checkpoint_freq'], train_params['report_freq']
 
     sess = tf.Session()
@@ -74,7 +84,7 @@ def train(config, debug=False):
     if type(restore_itr) == int:
         model.restore(sess, restore_itr, outfolder)
 
-    data_inputs, data_labels = load_data(model.inputs, model.labels, train_params['sets_source'])
+    data_inputs, data_labels = load_data(model.inputs, model.labels, config)
     batch_indices = index_generator(train_params['batch_size'], data_labels.values()[0].shape[0])
     for step in range(train_params['max_steps']):
         indices = next(batch_indices)

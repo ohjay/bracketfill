@@ -38,21 +38,52 @@ def parse_h2h_spreadsheet(csv_path, csv_config):
                     h2h_data[tag][opponent] = map(int, (match.group(1), match.group(2)))
     return h2h_data
 
-def parse_sets(sets_source):
+@utils.verbose('Set parsing')
+def parse_sets(config):
     """Parse set information from SETS_SOURCE."""
-    if sets_source.endswith('csv'):
-        # SETS_SOURCE assumed to consist of H2H spreadsheet data
-        return {}  # TODO
-    else:
-        print('[-] Unrecognized sets source: %s.' % sets_source)
+    sets = []
+    for source in config['train']['sets_source']:
+        source = os.path.join(config['data']['root'], source)
+        if source.endswith('csv'):
+            # SOURCE assumed to consist of H2H spreadsheet data
+            h2h_data = parse_h2h_spreadsheet(source, config['data']['csv_stats'])
+            processed_tags = set()
+            for tag0, records in h2h_data.items():
+                for tag1, h2h in records.items():
+                    if tag1 not in processed_tags:
+                        # Add wins
+                        for _ in range(h2h[0]):
+                            sets.append({'tag0': tag0.lower(), 'tag1': tag1.lower(), 'winner': 0})
+                        # Add losses
+                        for _ in range(h2h[1]):
+                            sets.append({'tag0': tag0.lower(), 'tag1': tag1.lower(), 'winner': 1})
+                processed_tags.add(tag0)
+        else:
+            print('[-] ERROR: Unrecognized source: %s.' % source)
+    return sets
 
-def parse_players(players_source):
+@utils.verbose('Player parsing')
+def parse_players(config):
     """Parse player information from PLAYERS_SOURCE."""
-    if players_source.endswith('csv'):
-        # PLAYERS_SOURCE assumed to consist of filled spreadsheet data
-        return {}  # TODO
-    else:
-        print('[-] Unrecognized players source: %s.' % players_source)
+    players = {}
+    for source in config['train']['players_source']:
+        source = os.path.join(config['data']['root'], source)
+        if source.endswith('player_profiles.csv'):
+            # SOURCE assumed to consist of general spreadsheet data
+            'TODO'
+        elif source.endswith('rankings.txt'):
+            # SOURCE assumed to consist of a list of rankings
+            with open(source) as f:
+                curr_ranking = 0
+                for line in f.readlines():
+                    tag = line.strip().split()[-1]
+                    if tag not in players:
+                        players[tag] = {}
+                    players[tag]['ranking'] = curr_ranking
+                    curr_ranking += 1
+        else:
+            print('[-] ERROR: Unrecognized source: %s.' % source)
+    return players
 
 @utils.verbose('Initial debugging')
 def run_debug_initial(*args, **kwargs):

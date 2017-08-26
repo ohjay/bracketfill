@@ -32,8 +32,11 @@ train:
   checkpoint_freq: 1000
   report_freq: 1000
   lr: 0.1
-  sets_source: summer_2017.csv
-  players_source: TODO
+  sets_source:
+    - summer_2017.csv
+  players_source:
+    - player_profiles.csv
+    - rankings.txt
 
 # ----------------
 # Model parameters
@@ -41,16 +44,16 @@ train:
 
 inputs:
   main:
-    dtype: int32
+    dtype: float32
     shape: [2]
   secondary:
-    dtype: int32
+    dtype: float32
     shape: [2]
   floaty:
-    dtype: int32
+    dtype: float32
     shape: [2]
   ranking:
-    dtype: int32
+    dtype: float32
     shape: [2]
 
 outputs:
