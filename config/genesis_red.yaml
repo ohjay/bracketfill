@@ -28,7 +28,7 @@ train:
   restore_itr: X
   outfolder: out
   batch_size: 64
-  max_steps: 30000
+  max_steps: 20000
   checkpoint_freq: 1000
   report_freq: 1000
   lr: 0.001
@@ -49,7 +49,13 @@ inputs:
     dtype: float32
     shape: [2]
     transform: [30, 1]
-  floaty:
+  patience:
+    dtype: float32
+    shape: [2]
+  neutral:
+    dtype: float32
+    shape: [2]
+  clutch:
     dtype: float32
     shape: [2]
   ranking:

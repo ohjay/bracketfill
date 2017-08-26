@@ -25,7 +25,7 @@ def load_data(model_inputs, model_labels, config):
             if input_name == 'floaty':
                 data_inputs['floaty'].append([players[tag0]['floaty'] + 1, players[tag1]['floaty'] + 1])
                 data_inputs['floaty'].append([players[tag1]['floaty'] + 1, players[tag0]['floaty'] + 1])
-            elif input_name in ('main', 'secondary', 'ranking'):
+            elif input_name in ('main', 'secondary', 'ranking', 'neutral', 'patience', 'clutch'):
                 _value0 = players[tag0][input_name]
                 _value1 = players[tag1][input_name]
                 transform = config['inputs'][input_name].get('transform', None)
@@ -96,7 +96,7 @@ def train(config, debug=False):
 
     restore_itr = train_params.get('restore_itr', None)
     if type(restore_itr) == int:
-        model.restore(sess, restore_itr, outfolder)
+        model.restore(sess, restore_itr, outfolder)  # TODO: this won't work, because the checkpoint was just deleted
 
     data_inputs, data_labels = load_data(model.inputs, model.labels, config)
     batch_indices = index_generator(train_params['batch_size'], data_labels.values()[0].shape[0])

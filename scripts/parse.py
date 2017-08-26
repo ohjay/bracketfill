@@ -110,6 +110,8 @@ def parse_players(config):
                     curr_ranking += 1
         else:
             print('[-] ERROR: Unrecognized source: %s.' % source)
+    if players:
+        print('Available player features: %r' % players.values()[0].keys())
     return players
 
 @utils.verbose('Initial debugging')

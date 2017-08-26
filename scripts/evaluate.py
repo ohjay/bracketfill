@@ -13,7 +13,7 @@ def extract_player_data(tag, model_inputs, players, transform=None):
         for input_name in model_inputs.keys():
             if input_name == 'floaty':
                 data[input_name] = players[tag.lower()][input_name] + 1
-            elif input_name in ('main', 'secondary', 'ranking'):
+            elif input_name in ('main', 'secondary', 'ranking', 'neutral', 'patience', 'clutch'):
                 _value = players[tag.lower()][input_name]
                 if transform and type(transform) == list and len(transform) == 2:
                     _value = (transform[0] - _value) * transform[1]
@@ -62,7 +62,7 @@ def evaluate(config, debug=False):
         data_inputs = {}
         for input_name in data0:
             _combined = np.array([data0[input_name]] + [data1[input_name]])
-            _combined /= np.linalg.norm(_combined)
+            _combined /= np.linalg.norm(_combined)  # TODO: this normalization weights features of larger magnitude more heavily
             data_inputs[input_name] = np.reshape(_combined, (1, _combined.size))
 
         input_feed = {input_tensor: data_inputs[name] for name, input_tensor in model.inputs.items()}
