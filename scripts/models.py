@@ -73,7 +73,7 @@ class LogisticRegression(Model):
 
         weights = tf.get_variable('W', shape=[total_input_size, 1], dtype=dtype,
                                   initializer=tf.contrib.layers.xavier_initializer())
-        biases = tf.get_variable('b', shape=[1], dtype=dtype, initializer=tf.constant_initializer(0.5, dtype=dtype))
+        biases = tf.get_variable('b', shape=[1], dtype=dtype, initializer=tf.constant_initializer(0.0, dtype=dtype))
         _linear = tf.matmul(_inputs, weights) + biases
 
         output = tf.divide(1.0, tf.add(1.0, tf.exp(tf.negative(_linear))), name='output')
@@ -84,6 +84,4 @@ class LogisticRegression(Model):
         self.outputs[output_name]['predicted_class'] = predicted_class
 
         _labels = tf.squeeze(self.labels.values()[0])
-        # self.loss = tf.losses.log_loss(_labels, output)
-        _argument = tf.add(1.0, tf.exp(tf.negative(_labels * output)))
-        self.loss = tf.constant(1.0 / log(2)) * tf.reduce_mean(tf.log(_argument))
+        self.loss = tf.reduce_mean(tf.losses.log_loss(_labels, output))

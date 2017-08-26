@@ -31,7 +31,7 @@ train:
   max_steps: 30000
   checkpoint_freq: 1000
   report_freq: 1000
-  lr: 0.1
+  lr: 0.001
   sets_source:
     - summer_2017.csv
   players_source:
